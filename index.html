@@ -1034,13 +1034,13 @@ fetch("https://uniforum-backend.onrender.com/add_event", {
 })
 .then(res => res.json())
 .then(data => {
-    console.log(data);
+    console.log("SERVER RESPONSE:", data);   // 👈 ADD THIS
     closeEventForm();
     fetchEventsFromBackend();
 })
-.catch(err => console.error(err));
-
-}
+.catch(err => {
+    console.error("ERROR:", err);   // 👈 ADD THIS
+});
 
 function deleteEvent(id){
 
