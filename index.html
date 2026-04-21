@@ -301,22 +301,6 @@ background:linear-gradient(135deg,#ff6b6b,#fa5252);
 
 <body>
 
-    <div id="demoMode" style="
-position:fixed;
-top:0;
-left:0;
-width:100%;
-background:#ff922b;
-color:white;
-text-align:center;
-padding:5px;
-font-weight:bold;
-z-index:9999;
-display:none;
-">
-DEMO MODE ACTIVE
-</div>
-
 <div class="modal" id="pinModal">
     <div class="pin-box">
         <h3 id="pinTitle">Enter Authority PIN</h3>
@@ -709,7 +693,8 @@ function goToHome() {
 function goToForums() { 
     goToHome(); 
     document.getElementById("forumsSection").scrollIntoView({ behavior: "smooth" }); 
-}function goToAbout() { goToHome(); document.getElementById("aboutSection").scrollIntoView({ behavior: "smooth" }); }
+}
+function goToAbout() { goToHome(); document.getElementById("aboutSection").scrollIntoView({ behavior: "smooth" }); }
 function goToAuthority() { 
     if (!authorityAccessGranted) return showAuthorityPin(); 
 
@@ -718,7 +703,8 @@ function goToAuthority() {
     document.getElementById("authorityPage").style.display = "block"; 
     updateCounts(); 
     document.getElementById('authorityEventList').style.display = 'none'; 
-}function showSections(arr) { arr.forEach(id => document.getElementById(id).style.display = "block"); }
+}
+function showSections(arr) { arr.forEach(id => document.getElementById(id).style.display = "block"); }
 function hideSections(arr) { arr.forEach(id => document.getElementById(id).style.display = "none"); }
 function openForum(f) { 
     currentForum = f; 
@@ -989,26 +975,10 @@ function fetchEventsFromBackend(){
         updateCounts();  
     })
     .catch(err => {
-        console.warn("Backend failed, switching to DEMO MODE");
-
-        const saved = localStorage.getItem("events_backup");
-
-        if (saved) {
-            Object.assign(events, JSON.parse(saved));
-
-            renderForumEvents();
-            renderPastEvents();
-            renderCalendar();
-            updateCounts();
-
-            document.getElementById("eventList").innerHTML =
-                "<p style='color:orange;'>⚡ DEMO MODE ACTIVE (using saved data)</p>";
-        } else {
-            document.getElementById("eventList").innerHTML =
-                "<p style='color:red;'>⚠️ No saved data available. Please refresh.</p>";
-        }
-        enableDemoMode();
-    });
+    console.error("Backend unreachable:", err);
+    document.getElementById("eventList").innerHTML =
+        "<p style='color:red;'>⚠️ Could not load events. Please refresh.</p>";
+});
 }
 setInterval(fetchEventsFromBackend, 60000);
 
@@ -1104,10 +1074,6 @@ function animateCount(id, target){
 }
 
 window.onload = fetchEventsFromBackend;
-
-function enableDemoMode() {
-    document.getElementById('demoMode').style.display = 'block';
-}
 
 </script>
 <!-- ADD EVENT FORM MODAL -->
