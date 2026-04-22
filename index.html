@@ -78,6 +78,7 @@ h2{text-align:center;margin-bottom:25px;font-size:32px;font-family:'Montserrat',
     transform: translate(-50%, -50%);
     object-fit: cover;
     z-index: -1;
+    pointer-events: none; /* 👈 Add this: Clicks will pass THROUGH the video */
 }
 
 .homeContent {
@@ -87,6 +88,7 @@ h2{text-align:center;margin-bottom:25px;font-size:32px;font-family:'Montserrat',
     text-align: center;
     top: 50%;
     transform: translateY(-50%);
+    pointer-events: none; /* 👈 Add this so clicks reach the sections behind/around it */
 }
 
 .homeContent h1 {
@@ -947,7 +949,6 @@ function fetchEventsFromBackend(){
             events[forumName].push({
                 id: e.id,
                 name: e.title,
-               // Inside fetchEventsFromBackend find this block:
                date: e.event_date ? (() => {
                     let d = new Date(e.event_date); // 👈 Changed 'et' to 'let'
                     let yyyy = d.getUTCFullYear();
