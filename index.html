@@ -943,7 +943,13 @@ function fetchEventsFromBackend(){
             events[forumName].push({
                 id: e.id,
                 name: e.title,
-                date: e.event_date ? e.event_date.toString().split('T')[0].split(' ')[0] : null,
+                date: e.event_date ? (() => {
+                    et d = new Date(e.event_date);
+                    let yyyy = d.getUTCFullYear();
+                    let mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+                    let dd = String(d.getUTCDate()).padStart(2, '0');
+                    return `${yyyy}-${mm}-${dd}`;
+                })() : null,
                 time: e.event_time,
                 venue: e.venue,
                 desc: e.description,
