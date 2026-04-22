@@ -616,11 +616,15 @@ function findEventsForDay(d, m, y) {
     let dayEvents = [];
     for (let f in events) {
         for (let e of events[f]) {
-            if (e.approval.toLowerCase() === "final-approved" && e.date) {
+            // Normalize status to lowercase and trim spaces
+            const status = (e.approval || "").toLowerCase().trim();
+            
+            if (status === "final-approved" && e.date) {
                 let p = e.date.split('-'); 
+                // Ensure we are comparing numbers to numbers
                 if (parseInt(p[0]) === y && (parseInt(p[1]) - 1) === m && parseInt(p[2]) === d) {
-                    e.forum = f;
-                    dayEvents.push(e);
+                    let eventCopy = {...e, forum: f}; 
+                    dayEvents.push(eventCopy);
                 }
             }
         }
@@ -943,8 +947,9 @@ function fetchEventsFromBackend(){
             events[forumName].push({
                 id: e.id,
                 name: e.title,
-                date: e.event_date ? (() => {
-                    et d = new Date(e.event_date);
+               // Inside fetchEventsFromBackend find this block:
+               date: e.event_date ? (() => {
+                    let d = new Date(e.event_date); // 👈 Changed 'et' to 'let'
                     let yyyy = d.getUTCFullYear();
                     let mm = String(d.getUTCMonth() + 1).padStart(2, '0');
                     let dd = String(d.getUTCDate()).padStart(2, '0');
