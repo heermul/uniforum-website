@@ -943,7 +943,7 @@ function fetchEventsFromBackend(){
             events[forumName].push({
                 id: e.id,
                 name: e.title,
-                date: e.event_date,
+                date: new Date(e.event_date).toISOString().split('T')[0],
                 time: e.event_time,
                 venue: e.venue,
                 desc: e.description,
