@@ -831,7 +831,12 @@ function editEvent(index) {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                status: "pending"
+                status: "pending",
+                title: n,
+                event_date: d,
+                event_time: t,
+                venue: v,
+                description: desc
             })
         });
     }
@@ -891,42 +896,49 @@ showToast(message);
     renderCalendar();
 }
 function addPastDetails(index){
+    let imgInput = prompt("Enter up to 4 image URLs, separated by commas:");
+    if(!imgInput) return;
+
+    let imgs = imgInput.split(",").map(s => s.trim()).filter(s => s.length > 0).slice(0, 4);
+
     let participants = prompt("Enter number of participants:");
+    if(!participants) return;
+
     let guests = prompt("Enter guest names:");
+    if(!guests) return;
+
     let feedback = prompt("Enter feedback:");
-    
-    let img1 = prompt("Enter Image 1 URL:");
-    let img2 = prompt("Enter Image 2 URL:");
-    let img3 = prompt("Enter Image 3 URL:");
-    let img4 = prompt("Enter Image 4 URL:");
+    if(!feedback) return;
 
     events[currentForum][index].pastData = {
         participants,
         guests,
         feedback,
-        images: [img1, img2, img3, img4]
+        images: imgs
     };
-    
+
     fetch(`https://uniforum-backend.onrender.com/add_past_event/${events[currentForum][index].id}`, {
-    method: "POST",
-    headers: {
-        "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-        participants,
-        guests,
-        feedback,
-        images: JSON.stringify([img1, img2, img3, img4])
-    })
-});
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            participants,
+            guests,
+            feedback,
+            images: JSON.stringify(imgs)
+        })
+    });
 
     renderPastEvents();
-    alert("Past event added!");
+    showToast("Past event details saved!");
 }
 
 function fetchEventsFromBackend(){
     console.log("FETCH RUNNING");  
-    document.getElementById("eventList").innerHTML = "<p>Loading events...</p>";
+    document.getElementById("eventList").innerHTML = `
+    <div style="text-align:center; padding:40px; color:#777;">
+        <p style="font-size:18px;">⏳ Loading events...</p>
+        <p style="font-size:13px; color:#aaa;">First load may take ~30 seconds if server was inactive.</p>
+    </div>`;
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 7000);
