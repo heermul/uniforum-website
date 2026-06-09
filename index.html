@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <title>UNIFORUM – College Event System</title>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
 body{background:#f4f4f4;overflow-x:hidden;}
@@ -297,6 +298,103 @@ background:linear-gradient(135deg,#ff6b6b,#fa5252);
 
 .final-approved{
     box-shadow:0 0 10px rgba(178,242,187,0.8);
+}
+
+/* UNIVERSAL ACTION MODAL */
+#actionModal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.85);
+    z-index: 3000;
+    align-items: center;
+    justify-content: center;
+}
+
+#actionModal.open {
+    display: flex;
+}
+
+.action-modal-box {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    width: 420px;
+    max-width: 90%;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+}
+
+.action-modal-box h3 {
+    margin-bottom: 20px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 20px;
+    color: #333;
+}
+
+.action-modal-box input,
+.action-modal-box textarea {
+    width: 100%;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: 'Poppins', sans-serif;
+    outline: none;
+    transition: 0.2s;
+}
+
+.action-modal-box input:focus,
+.action-modal-box textarea:focus {
+    border-color: #2f9e44;
+}
+
+.action-modal-box textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.action-modal-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 4px;
+    display: block;
+}
+
+.modal-btn-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.modal-btn-row button {
+    flex: 1;
+    padding: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 8px;
+}
+
+.modal-cancel-btn {
+    background: #f1f3f5 !important;
+    color: #333 !important;
+}
+
+.modal-cancel-btn:hover {
+    background: #e9ecef !important;
+}
+
+.modal-delete-btn {
+    background: linear-gradient(135deg, #ff6b6b, #fa5252) !important;
+}
+
+.modal-confirm-btn {
+    background: #2f9e44 !important;
+    color: white !important;
 }
 </style>
 </head>
@@ -759,56 +857,6 @@ function renderPastEvents(){
     }
 }
 
-function editEvent(index) {
-    const ev = events[currentForum][index];
-
-    let n = prompt("Edit Event Name:", ev.name);
-    if (n === null) return;
-
-    let d = prompt("Edit Date (YYYY-MM-DD):", ev.date);
-    if (d === null) return;
-
-    let t = prompt("Edit Time (e.g. 10:00 AM):", ev.time || "");
-    if (t === null) return;
-
-    let v = prompt("Edit Venue:", ev.venue);
-    if (v === null) return;
-
-    let desc = prompt("Edit Description:", ev.desc || "");
-    if (desc === null) return;
-
-    // UPDATE VALUES
-    ev.name = n;
-    ev.date = d;
-    ev.time = t;
-    ev.venue = v;
-    ev.desc = desc;
-
-    // ⭐ IMPORTANT: RESET STATUS TO PENDING
-    ev.approval = "pending";
-
-    // OPTIONAL: update backend also
-    if (ev.id) {
-        fetch(`https://uniforum-backend.onrender.com/update_status/${ev.id}`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                status: "pending",
-                title: n,
-                event_date: d,
-                event_time: t,
-                venue: v,
-                description: desc
-            })
-        });
-    }
-
-    renderForumEvents();
-    alert("Event updated! Sent again for approval.");
-}
-
 function updateStatus(forum, index, newStatus) {
     let ev = events[forum][index];
     ev.approval = newStatus;
@@ -858,42 +906,6 @@ showToast(message);
     // ⭐ VERY IMPORTANT
     renderPastEvents();  // <-- THIS FIXES YOUR REFRESH ISSUE
     renderCalendar();
-}
-function addPastDetails(index){
-    let imgInput = prompt("Enter up to 4 image URLs, separated by commas:");
-    if(!imgInput) return;
-
-    let imgs = imgInput.split(",").map(s => s.trim()).filter(s => s.length > 0).slice(0, 4);
-
-    let participants = prompt("Enter number of participants:");
-    if(!participants) return;
-
-    let guests = prompt("Enter guest names:");
-    if(!guests) return;
-
-    let feedback = prompt("Enter feedback:");
-    if(!feedback) return;
-
-    events[currentForum][index].pastData = {
-        participants,
-        guests,
-        feedback,
-        images: imgs
-    };
-
-    fetch(`https://uniforum-backend.onrender.com/add_past_event/${events[currentForum][index].id}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            participants,
-            guests,
-            feedback,
-            images: JSON.stringify(imgs)
-        })
-    });
-
-    renderPastEvents();
-    showToast("Past event details saved!");
 }
 
 function fetchEventsFromBackend(){
@@ -1039,12 +1051,6 @@ function deleteEvent(id){
     .catch(err => console.error(err));
 }
 
-function confirmDelete(id){
-    if(confirm("Are you sure you want to delete this event?")){
-        deleteEvent(id);
-    }
-}
-
 function animateCount(id, target){
     let el = document.getElementById(id);
     let count = 0;
@@ -1063,6 +1069,157 @@ function animateCount(id, target){
 
 window.onload = fetchEventsFromBackend;
 
+// UNIVERSAL ACTION MODAL FUNCTIONS
+function openActionModal(title, bodyHTML, buttonsHTML) {
+    document.getElementById('actionModalTitle').innerHTML = title;
+    document.getElementById('actionModalBody').innerHTML = bodyHTML;
+    document.getElementById('actionModalBtns').innerHTML = buttonsHTML;
+    document.getElementById('actionModal').classList.add('open');
+}
+
+function closeActionModal() {
+    document.getElementById('actionModal').classList.remove('open');
+}
+
+// DELETE CONFIRMATION MODAL
+function confirmDelete(id) {
+    openActionModal(
+        '🗑 Delete Event',
+        `<p style="color:#555; font-size:15px;">Are you sure you want to delete this event? This cannot be undone.</p>`,
+        `<button class="modal-cancel-btn" onclick="closeActionModal()">Cancel</button>
+         <button class="modal-delete-btn" onclick="deleteEvent(${id}); closeActionModal()">Delete</button>`
+    );
+}
+
+// EDIT EVENT MODAL
+function editEvent(index) {
+    const ev = events[currentForum][index];
+
+    const bodyHTML = `
+        <label class="action-modal-label">Event Name</label>
+        <input type="text" id="editName" value="${ev.name}">
+
+        <label class="action-modal-label">Date</label>
+        <input type="date" id="editDate" value="${ev.date}">
+
+        <label class="action-modal-label">Time</label>
+        <input type="text" id="editTime" value="${ev.time || ''}">
+
+        <label class="action-modal-label">Venue</label>
+        <input type="text" id="editVenue" value="${ev.venue}">
+
+        <label class="action-modal-label">Description</label>
+        <textarea id="editDesc">${ev.desc || ''}</textarea>
+    `;
+
+    openActionModal(
+        '✏️ Edit Event',
+        bodyHTML,
+        `<button class="modal-cancel-btn" onclick="closeActionModal()">Cancel</button>
+         <button class="modal-confirm-btn" onclick="submitEditEvent(${index})">Save Changes</button>`
+    );
+}
+
+function submitEditEvent(index) {
+    const n = document.getElementById('editName').value.trim();
+    const d = document.getElementById('editDate').value;
+    const t = document.getElementById('editTime').value.trim();
+    const v = document.getElementById('editVenue').value.trim();
+    const desc = document.getElementById('editDesc').value.trim();
+
+    if (!n || !d || !v) {
+        showToast('Please fill all required fields');
+        return;
+    }
+
+    const ev = events[currentForum][index];
+    ev.name = n;
+    ev.date = d;
+    ev.time = t;
+    ev.venue = v;
+    ev.desc = desc;
+    ev.approval = 'pending';
+
+    if (ev.id) {
+        fetch(`https://uniforum-backend.onrender.com/update_status/${ev.id}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                status: 'pending',
+                title: n,
+                event_date: d,
+                event_time: t,
+                venue: v,
+                description: desc
+            })
+        });
+    }
+
+    closeActionModal();
+    showToast('Event updated! Sent again for approval.');
+    renderForumEvents();
+}
+
+// ADD PAST DETAILS MODAL
+function addPastDetails(index) {
+    const bodyHTML = `
+        <label class="action-modal-label">Number of Participants</label>
+        <input type="text" id="pastParticipants" placeholder="e.g. 200 students">
+
+        <label class="action-modal-label">Guests</label>
+        <input type="text" id="pastGuests" placeholder="e.g. Industry Mentors">
+
+        <label class="action-modal-label">Feedback</label>
+        <textarea id="pastFeedback" placeholder="How did it go?"></textarea>
+
+        <label class="action-modal-label">Image URLs (comma separated, max 4)</label>
+        <input type="text" id="pastImages" placeholder="https://img1.com, https://img2.com">
+    `;
+
+    openActionModal(
+        '📸 Add Past Event Details',
+        bodyHTML,
+        `<button class="modal-cancel-btn" onclick="closeActionModal()">Cancel</button>
+         <button class="modal-confirm-btn" onclick="submitPastDetails(${index})">Save</button>`
+    );
+}
+
+function submitPastDetails(index) {
+    const participants = document.getElementById('pastParticipants').value.trim();
+    const guests = document.getElementById('pastGuests').value.trim();
+    const feedback = document.getElementById('pastFeedback').value.trim();
+    const imgInput = document.getElementById('pastImages').value;
+
+    if (!participants || !guests || !feedback) {
+        showToast('Please fill all required fields');
+        return;
+    }
+
+    const imgs = imgInput.split(',').map(s => s.trim()).filter(s => s.length > 0).slice(0, 4);
+
+    events[currentForum][index].pastData = {
+        participants,
+        guests,
+        feedback,
+        images: imgs
+    };
+
+    fetch(`https://uniforum-backend.onrender.com/add_past_event/${events[currentForum][index].id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            participants,
+            guests,
+            feedback,
+            images: JSON.stringify(imgs)
+        })
+    });
+
+    closeActionModal();
+    showToast('Past event details saved!');
+    renderPastEvents();
+}
+
 </script>
 <!-- ADD EVENT FORM MODAL -->
 <div id="eventFormModal" class="modal">
@@ -1079,5 +1236,15 @@ window.onload = fetchEventsFromBackend;
     <p onclick="closeEventForm()" style="margin-top:10px;cursor:pointer;color:#999;">Cancel</p>
   </div>
 </div>
+
+<!-- UNIVERSAL ACTION MODAL -->
+<div id="actionModal">
+    <div class="action-modal-box">
+        <h3 id="actionModalTitle"></h3>
+        <div id="actionModalBody"></div>
+        <div class="modal-btn-row" id="actionModalBtns"></div>
+    </div>
+</div>
+
 </body>
 </html>
